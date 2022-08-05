@@ -3,6 +3,12 @@ package connect4;
 import java.util.ArrayList;
 import java.util.List;
 
+enum Token {
+    EMPTY,
+    YELLOW,
+    RED
+}
+
 /**
  * A bitboard for fast connect four operations. The implementation design came
  * from: https://github.com/denkspuren/BitboardC4/blob/master/BitboardDesign.md
@@ -76,5 +82,21 @@ public class Bitboard {
             }
         }
         return moves;
+    }
+
+    /**
+     * Get the token at the specified position
+     * 
+     * @param x
+     * @param y
+     * @return
+     */
+    public Token getToken(int x, int y) {
+        long pos = 1 << (5 - y + 7 * x);
+        if ((boards[0] & pos) != 0)
+            return Token.YELLOW;
+        if ((boards[1] & pos) != 0)
+            return Token.RED;
+        return Token.EMPTY;
     }
 }

@@ -1,18 +1,19 @@
 package connect4;
 
 import javax.swing.*;
-import java.awt.Dimension;
+import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Board board = new Board();
-        frame.add(board);
+        board.setOpaque(true);
+        frame.setContentPane(board);
 
-        frame.setSize(500, 500);
         frame.setMinimumSize(new Dimension(500, 500));
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
         frame.setVisible(true);
     }
 }
