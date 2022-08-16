@@ -33,6 +33,18 @@ impl Bitboard {
         Self::is_win(self.boards[(self.moves.len() - 1) & 1])
     }
 
+    /// Lists all possible moves
+    pub fn list_moves(&self) -> Vec<usize> {
+        let mut moves = Vec::with_capacity(7);
+        const TOP: usize = 0b1000000_1000000_1000000_1000000_1000000_1000000_1000000;
+        for col in 0..7 {
+            if TOP & (1 << self.height[col]) == 0 {
+                moves.push(col)
+            }
+        }
+        moves
+    }
+
     /// Checks if there is a winning position on the bitboard
     pub fn is_win(bitboard: u64) -> bool {
         for dir in [1, 7, 6, 8] {
