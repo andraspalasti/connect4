@@ -9,7 +9,7 @@ impl Bitboard {
     pub fn new() -> Self {
         Self {
             boards: [0, 0],
-            height: [0, 7, 15, 24, 30, 35, 42],
+            height: [0, 7, 14, 21, 28, 35, 42],
             moves: Vec::new(),
         }
     }
@@ -38,7 +38,7 @@ impl Bitboard {
         let mut moves = Vec::with_capacity(7);
         const TOP: usize = 0b1000000_1000000_1000000_1000000_1000000_1000000_1000000;
         for col in 0..7 {
-            if TOP & (1 << self.height[col]) == 0 {
+            if (TOP & (1 << self.height[col])) == 0 {
                 moves.push(col)
             }
         }
@@ -54,5 +54,60 @@ impl Bitboard {
             }
         }
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn move_test() {
+        let mut bitboard = Bitboard::new();
+
+        bitboard.make_move(0);
+        assert!(bitboard.boards[0] == 0b1);
+
+        bitboard.make_move(0);
+        assert!(bitboard.boards[0] == 0b1);
+        assert!(bitboard.boards[1] == 0b10);
+    }
+
+    #[test]
+    fn undo_test() {
+        let mut bitboard = Bitboard::new();
+        bitboard.make_move(0);
+        bitboard.make_move(0);
+        bitboard.undo_move();
+        bitboard.undo_move();
+        assert!(bitboard.boards[0] == 0b0);
+        assert!(bitboard.boards[1] == 0b0);
+    }
+
+    #[test]
+    fn check_win_test() {
+        let mut bitboard = Bitboard::new();
+        for col in 0..3 {
+            bitboard.make_move(col);
+            bitboard.make_move(0);
+        }
+
+        bitboard.make_move(3);
+        assert!(bitboard.has_won());
+        assert!(Bitboard::is_win(bitboard.boards[0]));
+        assert!(!Bitboard::is_win(bitboard.boards[1]));
+
+        bitboard.make_move(0);
+        assert!(bitboard.has_won());
+        assert!(Bitboard::is_win(bitboard.boards[0]));
+        assert!(Bitboard::is_win(bitboard.boards[1]));
+    }
+
+    #[test]
+    fn move_list_test() {
+        let mut bitboard = Bitboard::new();
+        assert!(bitboard.list_moves().into_iter().eq(0..7));
+        bitboard.height.iter_mut().for_each(|h| *h += 6);
+        assert!(bitboard.list_moves().is_empty());
     }
 }
