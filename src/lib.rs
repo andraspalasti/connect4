@@ -1,4 +1,5 @@
 pub mod bitboard;
+pub mod evaluation;
 
 #[cfg(test)]
 mod tests {

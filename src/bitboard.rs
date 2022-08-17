@@ -6,6 +6,9 @@ pub struct Bitboard {
 }
 
 impl Bitboard {
+    pub const WIDTH: usize = 7;
+    pub const HEIGHT: usize = 6;
+
     pub fn new() -> Self {
         Self {
             boards: [0, 0],
@@ -16,7 +19,7 @@ impl Bitboard {
 
     pub fn make_move(&mut self, col: usize) {
         let move_ = 1 << self.height[col];
-        self.boards[self.moves.len() & 1] ^= move_;
+        self.boards[self.moves.len() % 2] ^= move_;
         self.moves.push(col);
         self.height[col] += 1;
     }
@@ -25,24 +28,28 @@ impl Bitboard {
         let col = self.moves.pop().expect("No move to undo");
         self.height[col] -= 1;
         let last_move = 1 << self.height[col];
-        self.boards[self.moves.len() & 1] ^= last_move;
+        self.boards[self.moves.len() % 2] ^= last_move;
     }
 
     /// Checks if the last move that has been made has won the game
     pub fn has_won(&self) -> bool {
-        Self::is_win(self.boards[(self.moves.len() - 1) & 1])
+        Self::is_win(self.boards[(self.moves.len() + 1) % 2])
     }
 
     /// Lists all possible moves
     pub fn list_moves(&self) -> Vec<usize> {
-        let mut moves = Vec::with_capacity(7);
+        let mut moves = Vec::with_capacity(Self::WIDTH);
         const TOP: usize = 0b1000000_1000000_1000000_1000000_1000000_1000000_1000000;
-        for col in 0..7 {
+        for col in 0..Self::WIDTH {
             if (TOP & (1 << self.height[col])) == 0 {
                 moves.push(col)
             }
         }
         moves
+    }
+
+    pub fn move_count(&self) -> usize {
+        self.moves.len()
     }
 
     /// Checks if there is a winning position on the bitboard
@@ -54,6 +61,17 @@ impl Bitboard {
             }
         }
         false
+    }
+}
+
+impl From<&str> for Bitboard {
+    fn from(moves: &str) -> Self {
+        let mut bitboard = Bitboard::new();
+        for c in moves.chars() {
+            let move_ = c.to_digit(10).unwrap() as usize;
+            bitboard.make_move(move_ - 1);
+        }
+        bitboard
     }
 }
 
@@ -87,6 +105,7 @@ mod tests {
     #[test]
     fn check_win_test() {
         let mut bitboard = Bitboard::new();
+        assert!(bitboard.has_won() == false);
         for col in 0..3 {
             bitboard.make_move(col);
             bitboard.make_move(0);
