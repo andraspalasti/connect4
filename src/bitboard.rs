@@ -5,6 +5,12 @@ pub struct Bitboard {
     moves: Vec<usize>,
 }
 
+pub enum Token {
+    Red,
+    Yellow,
+    Empty,
+}
+
 impl Bitboard {
     pub const WIDTH: usize = 7;
     pub const HEIGHT: usize = 6;
@@ -39,7 +45,7 @@ impl Bitboard {
     /// Lists all possible moves
     pub fn list_moves(&self) -> Vec<usize> {
         let mut moves = Vec::with_capacity(Self::WIDTH);
-        const TOP: usize = 0b1000000_1000000_1000000_1000000_1000000_1000000_1000000;
+        const TOP: u64 = 0b1000000_1000000_1000000_1000000_1000000_1000000_1000000;
         for col in 0..Self::WIDTH {
             if (TOP & (1 << self.height[col])) == 0 {
                 moves.push(col)
@@ -62,6 +68,23 @@ impl Bitboard {
         }
         false
     }
+
+    /// Returns the moves that were made on the board
+    pub fn moves(&self) -> &Vec<usize> {
+        &self.moves
+    }
+
+    pub fn get(&self, row: usize, col: usize) -> Token {
+        let pos = 1 << (5 - row + col * 7);
+        if self.boards[0] & pos != 0 {
+            Token::Red
+        } else if self.boards[1] & pos != 0 {
+            Token::Yellow
+        } else {
+            Token::Empty
+        }
+    }
+
 }
 
 impl From<&str> for Bitboard {

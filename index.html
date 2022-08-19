@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Page Title</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <style>
+    #board {
+      aspect-ratio: 7 / 6;
+      display: grid;
+      grid-template-columns: auto auto auto auto auto auto auto;
+      background-color: blue;
+    }
+
+    .token {
+      border-radius: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="board"></div>
+  <script defer>
+    const ROWS = 6;
+    const COLS = 7;
+
+    let activeCol = -1;
+
+    // Set up the board
+    let board = []
+    for (let row = 0; row < ROWS; row++) {
+      board.push([])
+      for (let col = 0; col < COLS; col++) {
+        board[row].push(' ');
+      }
+    }
+
+    function renderBoard() {
+      let boardElement = document.getElementById("board");
+      boardElement.innerHTML = "";
+      board.flat(2).forEach((state) => {
+        let token = document.createElement("div");
+        token.className = "token";
+        boardElement.append(token);
+      });
+    }
+  </script>
+</body>
+
+</html>
