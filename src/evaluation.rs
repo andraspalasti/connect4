@@ -67,7 +67,8 @@ pub fn alpha_beta(board: &mut Bitboard, mut alpha: i32, mut beta: i32) -> i32 {
         return 0;
     }
 
-    let moves = board.list_moves();
+    let mut moves = board.list_moves();
+    moves.sort_by(|a, b| a.abs_diff(3).cmp(&b.abs_diff(3)));
     if red_turn {
         let mut value = -SIZE;
         for move_ in moves {
