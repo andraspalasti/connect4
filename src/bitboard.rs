@@ -1,4 +1,5 @@
 /// Board implementation stolen from: https://github.com/denkspuren/BitboardC4/blob/master/BitboardDesign.md
+#[derive(Clone)]
 pub struct Bitboard {
     boards: [u64; 2],
     height: [u64; 7],

@@ -2,13 +2,13 @@ use std::io::Write;
 use std::time::Instant;
 
 use connect4::bitboard::Bitboard;
-use connect4::evaluation::analyze;
+use connect4::evaluation::{analyze, alpha_beta};
 
-const RUNS: usize = 30;
+const RUNS: usize = 50;
 
 fn main() {
     let mut stdout = std::io::stdout();
-    let mut board = Bitboard::from("41245376333225777136115215667");
+    let board = Bitboard::from("412453763332257771361152156");
 
     let mut avg = 0;
 
@@ -17,8 +17,9 @@ fn main() {
         write!(stdout, "[{}>{}]\r", "=".repeat(i), "-".repeat(RUNS - i - 1)).unwrap();
         stdout.flush().unwrap();
 
+        let b_clone = board.clone();
         let now = Instant::now();
-        analyze(&mut board);
+        analyze(b_clone, |b| alpha_beta(b, -42, 42));
         avg += now.elapsed().as_millis();
     }
     println!("");
