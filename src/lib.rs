@@ -1,2 +1,2 @@
 pub mod bitboard;
-pub mod evaluation;
+pub mod solver;

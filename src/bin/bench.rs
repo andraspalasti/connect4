@@ -2,7 +2,7 @@ use std::io::Write;
 use std::time::Instant;
 
 use connect4::bitboard::Bitboard;
-use connect4::evaluation::analyze;
+use connect4::solver::analyze;
 
 const RUNS: usize = 50;
 
