@@ -2,7 +2,7 @@ use std::io::Write;
 use std::time::Instant;
 
 use connect4::bitboard::Bitboard;
-use connect4::evaluation::{alpha_beta, analyze};
+use connect4::evaluation::analyze;
 
 const RUNS: usize = 50;
 
@@ -19,7 +19,7 @@ fn main() {
 
         let b_clone = board.clone();
         let now = Instant::now();
-        analyze(b_clone, |b| alpha_beta(b, -42, 42));
+        analyze(b_clone);
         avg += now.elapsed().as_millis();
     }
     println!("");

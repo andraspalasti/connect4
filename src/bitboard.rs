@@ -75,6 +75,10 @@ impl Bitboard {
         &self.moves
     }
 
+    pub fn boards(&self) -> &[u64; 2] {
+        &self.boards
+    }
+
     pub fn get(&self, row: usize, col: usize) -> Token {
         let pos = 1 << (5 - row + col * 7);
         if self.boards[0] & pos != 0 {
