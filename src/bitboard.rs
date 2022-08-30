@@ -3,7 +3,8 @@
 pub struct Bitboard {
     boards: [u64; 2],
     height: [u64; 7],
-    moves: Vec<usize>,
+    moves: [usize; Bitboard::WIDTH * Bitboard::HEIGHT],
+    move_count: usize,
 }
 
 pub enum Token {
@@ -20,27 +21,35 @@ impl Bitboard {
         Self {
             boards: [0, 0],
             height: [0, 7, 14, 21, 28, 35, 42],
-            moves: Vec::new(),
+            moves: [0; Self::WIDTH * Self::HEIGHT],
+            move_count: 0,
         }
     }
 
     pub fn make_move(&mut self, col: usize) {
-        let move_ = 1 << self.height[col];
-        self.boards[self.moves.len() % 2] ^= move_;
-        self.moves.push(col);
+        self.boards[self.move_count % 2] ^= 1 << self.height[col];
+        self.moves[self.move_count] = col;
         self.height[col] += 1;
+        self.move_count += 1;
     }
 
     pub fn undo_move(&mut self) {
-        let col = self.moves.pop().expect("No move to undo");
+        self.move_count -= 1;
+        let col = self.moves[self.move_count];
         self.height[col] -= 1;
-        let last_move = 1 << self.height[col];
-        self.boards[self.moves.len() % 2] ^= last_move;
+        self.boards[self.move_count % 2] ^= 1 << self.height[col];
     }
 
     /// Checks if the last move that has been made has won the game
     pub fn has_won(&self) -> bool {
-        Self::is_win(self.boards[(self.moves.len() + 1) % 2])
+        let bitboard = self.boards[(self.move_count + 1) % 2];
+        for dir in [1, 7, 6, 8] {
+            let bb = bitboard & (bitboard >> dir);
+            if bb & (bb >> (2 * dir)) != 0 {
+                return true;
+            }
+        }
+        false
     }
 
     /// Lists all possible moves
@@ -56,23 +65,12 @@ impl Bitboard {
     }
 
     pub fn move_count(&self) -> usize {
-        self.moves.len()
-    }
-
-    /// Checks if there is a winning position on the bitboard
-    pub fn is_win(bitboard: u64) -> bool {
-        for dir in [1, 7, 6, 8] {
-            let bb = bitboard & (bitboard >> dir);
-            if bb & (bb >> (2 * dir)) != 0 {
-                return true;
-            }
-        }
-        false
+        self.move_count
     }
 
     /// Returns the moves that were made on the board
-    pub fn moves(&self) -> &Vec<usize> {
-        &self.moves
+    pub fn moves(&self) -> &[usize] {
+        &self.moves[..self.move_count]
     }
 
     pub fn boards(&self) -> &[u64; 2] {
@@ -89,7 +87,6 @@ impl Bitboard {
             Token::Empty
         }
     }
-
 }
 
 impl From<&str> for Bitboard {
@@ -141,13 +138,6 @@ mod tests {
 
         bitboard.make_move(3);
         assert!(bitboard.has_won());
-        assert!(Bitboard::is_win(bitboard.boards[0]));
-        assert!(!Bitboard::is_win(bitboard.boards[1]));
-
-        bitboard.make_move(0);
-        assert!(bitboard.has_won());
-        assert!(Bitboard::is_win(bitboard.boards[0]));
-        assert!(Bitboard::is_win(bitboard.boards[1]));
     }
 
     #[test]

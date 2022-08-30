@@ -1,4 +1,4 @@
-use super::bitboard::Bitboard;
+use super::bitboard::{ Bitboard };
 
 const ILLEGAL_MOVE: i32 = 100;
 const SIZE: i32 = (Bitboard::WIDTH * Bitboard::HEIGHT) as i32;
@@ -6,7 +6,7 @@ const SIZE: i32 = (Bitboard::WIDTH * Bitboard::HEIGHT) as i32;
 /// Minimax search with alpha beta pruning
 /// alpha is the best score red is assured of
 /// beta is the best score yellow is assured of
-pub fn minimax(board: &mut Bitboard, mut alpha: i32, mut beta: i32) -> i32 {
+fn minimax(board: &mut Bitboard, mut alpha: i32, mut beta: i32) -> i32 {
     let move_count = board.move_count() as i32;
 
     let red_turn = board.move_count() % 2 == 0;

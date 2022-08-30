@@ -4,11 +4,11 @@ use std::time::Instant;
 use connect4::bitboard::Bitboard;
 use connect4::solver::analyze;
 
-const RUNS: usize = 50;
+const RUNS: usize = 1;
 
 fn main() {
     let mut stdout = std::io::stdout();
-    let board = Bitboard::from("412453763332257771361152156");
+    let board = Bitboard::from("333332242");
 
     let mut avg = 0;
 
