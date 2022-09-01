@@ -1,68 +1,50 @@
-use super::bitboard::{ Bitboard };
+use super::board::Board;
+
+const BOARD_SIZE: i32 = (Board::HEIGHT * Board::WIDTH) as i32;
+const MAX_SCORE: i32 = BOARD_SIZE + 1;
+const MIN_SCORE: i32 = -MAX_SCORE;
+
+const MOVE_EXPLORATION_ORDER: [usize; Board::WIDTH] = [3, 2, 4, 1, 5, 0, 6];
 
 const ILLEGAL_MOVE: i32 = 100;
-const SIZE: i32 = (Bitboard::WIDTH * Bitboard::HEIGHT) as i32;
 
-/// Minimax search with alpha beta pruning
-/// alpha is the best score red is assured of
-/// beta is the best score yellow is assured of
-fn minimax(board: &mut Bitboard, mut alpha: i32, mut beta: i32) -> i32 {
+fn negamax(board: &mut Board, mut alpha: i32, beta: i32) -> i32 {
     let move_count = board.move_count() as i32;
 
-    let red_turn = board.move_count() % 2 == 0;
-
-    // Check if the previous move has won the game
     if board.has_won() {
-        let mut value = SIZE + 1 - move_count;
-        // if red_turn == true that means yellow has won with its last move
-        if red_turn {
-            value *= -1;
-        }
-        return value;
+        return -(MAX_SCORE - move_count);
     }
 
-    // Check for a draw
-    if SIZE == move_count {
+    if move_count == BOARD_SIZE {
         return 0;
     }
 
-    let mut moves = board.list_moves();
-    moves.sort_by(|a, b| a.abs_diff(3).cmp(&b.abs_diff(3)));
-    if red_turn {
-        let mut value = -SIZE;
-        for move_ in moves {
-            board.make_move(move_);
-            value = value.max(minimax(board, alpha, beta));
+    for col in MOVE_EXPLORATION_ORDER {
+        if board.can_play(col) {
+            board.make_move(col);
+            let score = -negamax(board, -beta, -alpha);
             board.undo_move();
 
-            if beta < value {
-                break;
+            if beta <= score {
+                return score;
             }
-            alpha = value.max(alpha)
-        }
-        value
-    } else {
-        let mut value = SIZE;
-        for move_ in moves {
-            board.make_move(move_);
-            value = value.min(minimax(board, alpha, beta));
-            board.undo_move();
 
-            if value < alpha {
-                break;
+            if alpha < score {
+                alpha = score
             }
-            beta = value.min(beta)
         }
-        value
     }
+    alpha
 }
 
-pub fn analyze(mut board: Bitboard) -> [i32; Bitboard::WIDTH] {
-    let mut result = [ILLEGAL_MOVE; Bitboard::WIDTH];
-    for move_ in board.list_moves() {
-        board.make_move(move_);
-        result[move_] = minimax(&mut board, -SIZE, SIZE);
-        board.undo_move();
+pub fn analyze(mut board: Board) -> [i32; Board::WIDTH] {
+    let mut result = [ILLEGAL_MOVE; Board::WIDTH];
+    for col in 0..Board::WIDTH {
+        if board.can_play(col) {
+            board.make_move(col);
+            result[col] = -negamax(&mut board, MIN_SCORE, MAX_SCORE);
+            board.undo_move();
+        }
     }
     result
 }
@@ -72,10 +54,10 @@ mod tests {
     use super::*;
     #[test]
     fn basic_eval_test() {
-        let board = Bitboard::from("41245376333225777136115215667766214");
+        let board = Board::from("33333344226000000666664");
 
         let result = analyze(board);
 
-        assert_eq!(result, [100, 0, 4, -7, 4, 100, 100]);
+        assert_eq!(result, [100, -18, -18, 100, -18, -18, 100]);
     }
 }
