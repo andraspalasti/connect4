@@ -39,6 +39,8 @@ impl Board {
         }
     }
 
+    /// Puts a token into the specified column, you have to check
+    /// that you actually can place a token in the column
     pub fn make_move(&mut self, col: usize) {
         self.boards[self.move_count & 1] |= 1 << self.heights[col];
         self.moves[self.move_count] = col;
@@ -46,6 +48,8 @@ impl Board {
         self.move_count += 1;
     }
 
+    /// Undos the last move, you have to check that there
+    /// has been at least one move made to use this function
     pub fn undo_move(&mut self) {
         self.move_count -= 1;
         let col = self.moves[self.move_count];
@@ -53,14 +57,14 @@ impl Board {
         self.boards[self.move_count & 1] ^= 1 << self.heights[col];
     }
 
-    /// Checks if the last move that has been made has won the game
-    pub fn has_won(&self) -> bool {
-        Self::is_win(self.boards[(self.move_count + 1) & 1])
-    }
-
     /// Checks if you can put a token in the specified column
     pub fn can_play(&self, col: usize) -> bool {
         (TOP & (1 << self.heights[col])) == 0
+    }
+
+    /// Checks if the last move that has been made won the game
+    pub fn has_won(&self) -> bool {
+        Self::is_win(self.boards[(self.move_count + 1) & 1])
     }
 
     /// Checks if there is a win on the specified bitboard
@@ -68,15 +72,17 @@ impl Board {
         const H: usize = Board::HEIGHT;
         const H1: usize = H + 1;
         const H2: usize = H1 + 1;
-        // vertical |
-        let vert = (bb >> 3) & (bb >> 2) & (bb >> 1) & bb;
-        // horizontal -
-        let hori = (bb >> (H1 * 3)) & (bb >> (H1 * 2)) & (bb >> H1) & bb;
-        // diagonal1 \
-        let diag1 = (bb >> (H * 3)) & (bb >> (H * 2)) & (bb >> H) & bb;
-        // diagonal1 /
-        let diag2 = (bb >> (H2 * 3)) & (bb >> (H2 * 2)) & (bb >> H2) & bb;
-        vert | hori | diag1 | diag2 != 0
+
+        let vert = (bb >> 1) & bb; // vertical |
+        let hori = (bb >> H1) & bb; // horizontal -
+        let diag1 = (bb >> H) & bb; // diagonal1 \
+        let diag2 = (bb >> H2) & bb; // diagonal1 /
+
+        (vert & (vert >> 2))
+            | (hori & (hori >> (2 * H1)))
+            | (diag1 & (diag1 >> (2 * H)))
+            | (diag2 & (diag2 >> (2 * H2)))
+            != 0
     }
 
     /// Returns the number of moves that have been made
@@ -89,6 +95,11 @@ impl Board {
         &self.moves[..self.move_count]
     }
 
+    pub fn key(&self) -> u64 {
+        ((self.boards[0] | self.boards[1]) + BOTTOM) | self.boards[self.move_count & 1]
+    }
+
+    // Returns the kind of the token at the specified position
     pub fn get(&self, row: usize, col: usize) -> Token {
         let pos = 1 << (5 - row + col * 7);
         if (self.boards[0] & pos) != 0 {
@@ -110,10 +121,7 @@ impl From<&str> for Board {
             if board.has_won() {
                 break;
             } else if Board::WIDTH <= col || !board.can_play(col) {
-                panic!(
-                    "Illegal move at {}",
-                    board.move_count()
-                );
+                panic!("Illegal move at {}", board.move_count());
             }
 
             board.make_move(col);
