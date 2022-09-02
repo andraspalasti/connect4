@@ -2,14 +2,14 @@ use crate::{MAX_SCORE, MIN_SCORE};
 
 /// Transposition Table
 /// An entry is stored like this:
-/// |    key    |  value   |  flag   |
-/// |  55 bits  |  8 bits  |  1 bits |
+/// |    key    |  flag   |  value   |
+/// |  55 bits  |  1 bits |  8 bits  |
 pub struct TransTable {
     positions: Vec<u64>,
 }
 
-const FLAG_MASK: u64 = 0b1;
-const VALUE_MASK: u64 = 0b1111_1111_0;
+const VALUE_MASK: u64 = 0b1111_1111;
+const FLAG_MASK: u64 = VALUE_MASK + 1;
 const KEY_MASK: u64 = !(FLAG_MASK | VALUE_MASK);
 
 impl TransTable {
