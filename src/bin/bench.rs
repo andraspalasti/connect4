@@ -1,14 +1,15 @@
 use std::io::Write;
 use std::time::Instant;
 
-use connect4::board::Board;
-use connect4::solver::analyze;
+use connect4::{Solver, Board};
 
 const RUNS: usize = 1;
 
 fn main() {
+    let mut solver = Solver::new(8*1024*1024);
+
     let mut stdout = std::io::stdout();
-    let board = Board::from("333332242");
+    let board = Board::from("333332242134");
 
     let mut avg = 0;
 
@@ -19,8 +20,9 @@ fn main() {
 
         let b_clone = board.clone();
         let now = Instant::now();
-        analyze(b_clone);
+        solver.analyze(b_clone);
         avg += now.elapsed().as_millis();
+        solver.reset();
     }
     println!("");
 
