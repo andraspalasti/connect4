@@ -110,6 +110,72 @@ impl Board {
             Token::Empty
         }
     }
+
+    pub fn boards(&self) -> &[Bitboard; 2] {
+        &self.boards
+    }
+}
+
+/// Returns the possible token positions in a bitmask
+pub fn possible_mask(b: &Board) -> Bitboard {
+    ((b.boards[0] | b.boards[1]) + BOTTOM) & (!TOP)
+}
+
+/// Returns a bitmask of the specified column
+pub fn col_mask(col: usize) -> Bitboard {
+    const COLUMN: Bitboard = (1 << (Board::HEIGHT + 1)) - 1;
+    COLUMN << (col * (Board::HEIGHT + 1))
+}
+
+/// Returns a bitmask of the missing tokens
+pub fn winning_mask(bb: Bitboard) -> Bitboard {
+    const H: usize = Board::HEIGHT;
+    const H1: usize = H + 1;
+    const H2: usize = H1 + 1;
+
+    // vertical |
+    let mut res = (bb << 3) & (bb << 2) & (bb << 1);
+
+    // horizontal -
+    let mut tmp = (bb << H1) & (bb << (H1 * 2));
+    res |= tmp & (bb << (H1 * 3));
+    res |= (bb >> H1) & tmp;
+    tmp = (bb >> (H1 * 2)) & (bb >> H1);
+    res |= tmp & (bb << H1);
+    res |= (bb >> (H1 * 3)) & tmp;
+
+    // diagonal /
+    tmp = (bb << H2) & (bb << (H2 * 2));
+    res |= (tmp) & (bb << (H2 * 3));
+    res |= (bb >> H2) & tmp;
+    tmp = (bb >> (H2 * 2)) & (bb >> H2);
+    res |= tmp & (bb << H2);
+    res |= (bb >> (H2 * 3)) & tmp;
+
+    // diagonal \
+    tmp = (bb << H) & (bb << (H * 2));
+    res |= tmp & (bb << (H * 3));
+    res |= (bb >> H) & tmp;
+    tmp = (bb >> (H * 2)) & (bb >> H);
+    res |= tmp & (bb << H);
+    res |= (bb >> (H * 3)) & tmp;
+
+    return res & (!TOP);
+}
+
+pub fn non_losing_moves(b: &Board) -> Bitboard {
+    let mut possible = possible_mask(b);
+    let opponent_winning = winning_mask(b.boards[(b.move_count ^ 1) & 1]);
+    let forcing = possible & opponent_winning;
+    if forcing != 0 {
+        // check if there is more than one forcing move
+        if forcing & (forcing - 1) != 0 {
+            return 0; // There is no good move
+        } else {
+            possible = forcing;
+        }
+    }
+    possible & (!(opponent_winning >> 1))
 }
 
 impl From<&str> for Board {

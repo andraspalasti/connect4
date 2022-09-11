@@ -1,6 +1,6 @@
 use crate::trans_table::TransTable;
 
-use super::board::Board;
+use super::board::{col_mask, non_losing_moves, possible_mask, winning_mask, Board};
 
 const BOARD_SIZE: i32 = (Board::HEIGHT * Board::WIDTH) as i32;
 
@@ -28,11 +28,12 @@ impl Solver {
         self.num_nodes += 1;
         let move_count = board.move_count() as i32;
 
-        if board.has_won() {
-            return -(MAX_SCORE - move_count);
+        let moves = non_losing_moves(board);
+        if moves == 0 {
+            return -(MAX_SCORE - move_count - 2);
         }
 
-        if move_count == BOARD_SIZE {
+        if move_count == BOARD_SIZE - 2 {
             return 0;
         }
 
@@ -54,24 +55,20 @@ impl Solver {
 
         let key = board.key();
         let (value, is_upper) = self.trans_table.get(key);
-        match is_upper {
-            true if value < beta => {
-                beta = value;
-                if beta <= alpha {
-                    return beta;
-                }
+        if is_upper && value < beta {
+            beta = value;
+            if beta <= alpha {
+                return beta;
             }
-            false if alpha < value => {
-                alpha = value;
-                if beta <= alpha {
-                    return alpha;
-                }
+        } else if !is_upper && alpha < value {
+            alpha = value;
+            if beta <= alpha {
+                return alpha;
             }
-            _ => (),
         }
 
         for col in MOVE_EXPLORATION_ORDER {
-            if board.can_play(col) {
+            if (col_mask(col) & moves) != 0 {
                 board.make_move(col);
                 let score = -self.negamax(board, -beta, -alpha);
                 board.undo_move();
@@ -92,10 +89,26 @@ impl Solver {
 
     pub fn analyze(&mut self, mut board: Board) -> [i32; Board::WIDTH] {
         let mut result = [ILLEGAL_MOVE; Board::WIDTH];
+
+        if board.has_won() {
+            return result;
+        }
+
         for col in 0..Board::WIDTH {
             if board.can_play(col) {
                 board.make_move(col);
-                result[col] = -self.negamax(&mut board, MIN_SCORE, MAX_SCORE);
+                let move_count = board.move_count();
+                // check if we have won with this move
+                if board.has_won() {
+                    result[col] = -(MAX_SCORE - move_count as i32);
+                } else {
+                    // check if we are able to win with 1 move
+                    if possible_mask(&board) & winning_mask(board.boards()[move_count & 1]) != 0 {
+                        result[col] = -(MAX_SCORE - move_count as i32 - 1);
+                    } else {
+                        result[col] = -self.negamax(&mut board, MIN_SCORE, MAX_SCORE);
+                    }
+                }
                 board.undo_move();
             }
         }

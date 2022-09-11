@@ -1,4 +1,4 @@
-use crate::{MAX_SCORE, MIN_SCORE};
+use crate::solver::{MAX_SCORE, MIN_SCORE};
 
 /// Transposition Table
 /// An entry is stored like this:
