@@ -99,7 +99,7 @@ impl Board {
         ((self.boards[0] | self.boards[1]) + BOTTOM) | self.boards[self.move_count & 1]
     }
 
-    // Returns the kind of the token at the specified position
+    /// Returns the kind of the token at the specified position
     pub fn get(&self, row: usize, col: usize) -> Token {
         let pos = 1 << (5 - row + col * 7);
         if (self.boards[0] & pos) != 0 {
@@ -163,6 +163,7 @@ pub fn winning_mask(bb: Bitboard) -> Bitboard {
     return res & (!TOP);
 }
 
+/// Returns a mask of the non losing moves for the current player
 pub fn non_losing_moves(b: &Board) -> Bitboard {
     let mut possible = possible_mask(b);
     let opponent_winning = winning_mask(b.boards[(b.move_count ^ 1) & 1]);

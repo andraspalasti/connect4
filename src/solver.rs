@@ -115,6 +115,10 @@ impl Solver {
         result
     }
 
+    pub fn explored_nodes(&self) -> usize {
+        self.num_nodes
+    }
+
     pub fn reset(&mut self) {
         self.num_nodes = 0;
         self.trans_table.clear();
@@ -130,6 +134,9 @@ mod tests {
 
         let result = Solver::new(8).analyze(board);
 
-        assert_eq!(result, [100, -18, -18, 100, -18, -18, 100]);
+        assert_eq!(
+            result,
+            [ILLEGAL_MOVE, -18, -18, ILLEGAL_MOVE, -18, -18, ILLEGAL_MOVE]
+        );
     }
 }
