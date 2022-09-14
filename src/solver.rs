@@ -1,4 +1,4 @@
-use crate::trans_table::TransTable;
+use crate::{move_sorter::MoveSorter, trans_table::TransTable};
 
 use super::board::{col_mask, non_losing_moves, possible_mask, winning_mask, Board};
 
@@ -67,22 +67,28 @@ impl Solver {
             }
         }
 
-        for col in MOVE_EXPLORATION_ORDER {
+        let mut move_sorter = MoveSorter::new();
+        for col in MOVE_EXPLORATION_ORDER.into_iter().rev() {
             if (col_mask(col) & moves) != 0 {
-                board.make_move(col);
-                let score = -self.negamax(board, -beta, -alpha);
-                board.undo_move();
-
-                if beta <= score {
-                    self.trans_table.put(key, score, false);
-                    return score;
-                }
-
-                if alpha < score {
-                    alpha = score
-                }
+                move_sorter.add(col, board.move_score(col))
             }
         }
+
+        while let Some(col) = move_sorter.next() {
+            board.make_move(col);
+            let score = -self.negamax(board, -beta, -alpha);
+            board.undo_move();
+
+            if beta <= score {
+                self.trans_table.put(key, score, false);
+                return score;
+            }
+
+            if alpha < score {
+                alpha = score
+            }
+        }
+
         self.trans_table.put(key, value, true);
         alpha
     }

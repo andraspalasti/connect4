@@ -111,6 +111,10 @@ impl Board {
         }
     }
 
+    pub fn move_score(&self, col: usize) -> u32 {
+        winning_mask(self.boards[self.move_count & 1] | 1 << self.heights[col]).count_ones()
+    }
+
     pub fn boards(&self) -> &[Bitboard; 2] {
         &self.boards
     }
